@@ -234,7 +234,9 @@
     position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 14px 20px; font-size: 13px; max-width: 280px; z-index: 200;
     animation: slideIn .3s ease; display: none;
   }
-
+  .result-actions button {
+  flex: 1;
+}
 
   .bank-btn {
   background: var(--bg3);
@@ -824,18 +826,22 @@
 
     <div id="dealStream" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
+  <div class="result-actions">
 
-  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;">
-    <button onclick="generateBankReport()"
-style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
-📦 Сформировать пакет для банка
-</button>
-<button onclick="downloadReport()"
-style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
-📊 Скачать отчёт
-</button>
-    <button onclick="resetForm()" style="background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">↩ Новая проверка</button>
-  </div>
+  <button onclick="generateBankReport()"
+    style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
+    📦 Сформировать пакет для банка
+  </button>
+
+  <button onclick="downloadReport()"
+    style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
+    📊 Скачать отчёт
+  </button>
+
+  <button onclick="resetForm()"
+    style="background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">
+    ↩ Новая проверка
+  </button>
 
 </div>
 </section>
