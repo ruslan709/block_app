@@ -110,6 +110,16 @@
 
   .demo-header { text-align: center; margin-bottom: 48px; }
 
+
+
+  .source-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+
+
   .demo-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 16px; align-items: center; margin-bottom: 40px; }
   .demo-step-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
   .demo-step-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(47,232,160,0.2); }
@@ -224,6 +234,30 @@
     position: fixed; bottom: 24px; right: 24px; background: var(--bg2); border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 14px 20px; font-size: 13px; max-width: 280px; z-index: 200;
     animation: slideIn .3s ease; display: none;
   }
+
+
+  .bank-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+
+.bank-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bank-btn.connected {
+  background: rgba(47,232,160,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
   @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
   .notification.show { display: block; }
   /* =========================
@@ -341,6 +375,7 @@
     bottom: 16px;
     max-width: none;
   }
+
 }
 
 
@@ -379,6 +414,22 @@
 
   .result-score-big {
     font-size: 34px;
+  }
+}
+@media (max-width: 768px) {
+  .source-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 768px) {
+  #bank_panel > div > div:last-child {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bank-btn {
+    width: 100%;
+    text-align: center;
   }
 }
 </style>
@@ -472,6 +523,18 @@
           <div class="step-tags"><span class="tag">RTP НСПК</span><span class="tag">Контур.Крипто</span></div>
         </div>
       </div>
+      <div class="flow-step">
+  <div class="step-num">5</div>
+  <div class="step-content">
+    <h4>Аналитическая риск-модель</h4>
+    <p>Собственная модель анализирует поведение, контрагента и документы, выявляя скрытые паттерны риска до решения банка.</p>
+    <div class="step-tags">
+      <span class="tag">ML-анализ</span>
+      <span class="tag">Поведенческий скоринг</span>
+      <span class="tag">Антифрод</span>
+    </div>
+  </div>
+</div>
     </div>
 
     <div class="score-card">
@@ -491,7 +554,7 @@
       </div>
       <div class="score-checks">
         <div class="score-check"><div class="check-icon ok"></div><span>Договор — есть, суммы совпадают</span></div>
-        <div class="score-check"><div class="check-icon ok"></div><span>Акт подписан КЭП обеих сторон</span></div>
+        <div class="score-check"><div class="check-icon ok"></div><span>Акт подписан УКЭП обеих сторон</span></div>
         <div class="score-check"><div class="check-icon ok"></div><span>ФНС: статус активный, долгов нет</span></div>
         <div class="score-check"><div class="check-icon ok"></div><span>Контрагент не в стоп-листах ЦБ</span></div>
         <div class="score-check"><div class="check-icon ok"></div><span>СПАРК: 12 сделок, ноль блокировок</span></div>
@@ -530,6 +593,25 @@
     </div>
 
     <div id="gosBlock" style="margin-bottom:24px;">
+        <div id="profileBuild" style="display:none;margin-bottom:20px;">
+  <div style="
+    background:rgba(47,232,160,0.06);
+    border:1px solid rgba(47,232,160,0.25);
+    border-radius:12px;
+    padding:14px;
+  ">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">
+      🧠 Формируем цифровой профиль
+    </div>
+
+    <div id="profileSteps" style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);">
+      <div id="ps1">Проверка ИНН...</div>
+      <div id="ps2">Загрузка данных из ФНС...</div>
+      <div id="ps3">Анализ операций...</div>
+      <div id="ps4">Сбор профиля риска...</div>
+    </div>
+  </div>
+</div>
       <div id="gosBefore" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <button class="gosuslugi-btn" style="max-width:320px;" onclick="connectGos()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -581,7 +663,7 @@
       </div>
       <div class="demo-form-full">
         <div class="field-label">Источник документов</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+        <div class="source-grid" style="margin-bottom:16px;">
           <div id="src_edo" onclick="toggleSource('edo')" style="border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px;text-align:center;cursor:pointer;background:rgba(47,232,160,0.07);transition:all .2s;">
             <div style="font-size:14px;font-weight:600;color:var(--accent);">📄 ЭДО</div>
             <div style="font-size:11px;color:var(--muted);margin-top:4px;">Диадок / СБИС / 1С</div>
@@ -613,9 +695,9 @@
           <div style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:16px;text-align:center;">
             <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Получить данные платежа напрямую из интернет-банка</div>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-              <button onclick="showNotif('Интеграция с Сбербанком подключена в тарифе Расширенный')" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;">Сбербанк</button>
-              <button onclick="showNotif('Интеграция с Тинькофф подключена в тарифе Расширенный')" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;">Тинькофф</button>
-              <button onclick="showNotif('Интеграция с ВТБ подключена в тарифе Расширенный')" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;font-family:inherit;">ВТБ</button>
+             <button onclick="connectBank(this, 'Сбербанк')" class="bank-btn">Сбербанк</button>
+             <button onclick="connectBank(this, 'Тинькофф')" class="bank-btn">Тинькофф</button>
+             <button onclick="connectBank(this, 'ВТБ')" class="bank-btn">ВТБ</button>
             </div>
           </div>
         </div>
@@ -635,37 +717,117 @@
       </div>
     </div>
 
-    <div class="result-panel" id="resultPanel">
-      <div class="result-top">
-        <div>
-          <div class="result-score-big" id="rScore">—</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;">из 100 баллов</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="result-verdict" id="rVerdict">—</div>
-          <div class="result-sub-text" id="rSubtext">—</div>
-        </div>
-      </div>
+<div class="result-panel" id="resultPanel">
 
-      <div class="checks-grid" id="checksGrid">
-      </div>
+  <div class="result-top">
+    <div id="dealCard" style="
+  margin-top:20px;
+  background:linear-gradient(180deg,#3B82F6,#2563EB);
+  border-radius:16px;
+  padding:20px;
+  color:white;
+  display:none;
+">
 
-      <div class="sources-row">
-        <span class="source-pill">ФНС</span>
-        <span class="source-pill">СПАРК</span>
-        <span class="source-pill">ЦБ ЗСК</span>
-        <span class="source-pill">ЕГРЮЛ</span>
-        <span class="source-pill">Диадок</span>
-        <span class="source-pill">RTP НСПК</span>
-      </div>
-
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;">
-        <button onclick="showNotif('Пакет документов для банка сформирован и готов к отправке')" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;transition:all .2s;">📦 Сформировать пакет для банка</button>
-        <button onclick="showNotif('Полный отчёт отправлен на email')" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;transition:all .2s;">📊 Скачать отчёт</button>
-        <button onclick="resetForm()" style="background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .2s;">↩ Новая проверка</button>
-      </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div style="font-size:13px;opacity:.8;">Контрагент</div>
+    <div style="font-size:11px;background:rgba(255,255,255,0.2);padding:4px 10px;border-radius:10px;">
+      Исполняется
     </div>
   </div>
+
+  <div style="font-weight:600;font-size:16px;">
+    ООО СтройИнвест Плюс
+  </div>
+  <div style="font-size:12px;opacity:.7;margin-bottom:12px;">
+    ИНН: 7702456780
+  </div>
+
+  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px;">
+    <div>
+      <div style="opacity:.7;">Основание</div>
+      <div>Договор №СИ-2025/123</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="opacity:.7;">Сумма</div>
+      <div id="dealTotal">—</div>
+    </div>
+  </div>
+
+  <div style="
+    background:rgba(255,255,255,0.15);
+    border-radius:10px;
+    padding:10px;
+    font-size:12px;
+    margin-bottom:10px;
+  ">
+    🟢 Автоматическая синхронизация активна
+  </div>
+
+  <div style="font-size:12px;opacity:.8;margin-bottom:10px;">
+    ML-анализ выполнен
+  </div>
+
+  <!-- ПРОГРЕСС -->
+  <div style="margin-top:10px;">
+    <div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span id="dealPaid">—</span>
+      <span id="dealPercent">—</span>
+    </div>
+
+    <div style="height:6px;background:rgba(255,255,255,0.2);border-radius:4px;margin:6px 0;">
+      <div id="dealBar" style="height:100%;width:30%;background:white;border-radius:4px;"></div>
+    </div>
+
+    <div style="font-size:12px;opacity:.8;">
+      Остаток: <span id="dealRest">—</span>
+    </div>
+  </div>
+
+</div>
+    <div>
+      <div class="result-score-big" id="rScore">—</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">из 100 баллов</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="result-verdict" id="rVerdict">—</div>
+      <div class="result-sub-text" id="rSubtext">—</div>
+    </div>
+  </div>
+
+  <div class="checks-grid" id="checksGrid"></div>
+
+  <div class="sources-row">
+    <span class="source-pill">ФНС</span>
+    <span class="source-pill">СПАРК</span>
+    <span class="source-pill">ЦБ ЗСК</span>
+    <span class="source-pill">ЕГРЮЛ</span>
+    <span class="source-pill">Диадок</span>
+    <span class="source-pill">RTP НСПК</span>
+  </div>
+
+  <!-- 🔥 ВОТ ТУТ ЖИВАЯ ИСТОРИЯ -->
+  <div id="dealHistory" style="margin-top:20px;display:none;">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px;">
+      История сделки
+    </div>
+
+    <div id="dealStream" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;">
+    <button onclick="generateBankReport()"
+style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
+📦 Сформировать пакет для банка
+</button>
+<button onclick="downloadReport()"
+style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;flex:1;">
+📊 Скачать отчёт
+</button>
+    <button onclick="resetForm()" style="background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;">↩ Новая проверка</button>
+  </div>
+
+</div>
 </section>
 
 <section id="pricing" style="padding-top:0;">
@@ -681,8 +843,8 @@
       <div class="price-features">
         <div class="price-feature">Проверка ФНС + СПАРК</div>
         <div class="price-feature">Скор риска платежа</div>
-        <div class="price-feature dim">Реестр документов</div>
-        <div class="price-feature dim">Автопакет для банка</div>
+        <div class="price-feature">Реестр документов</div>
+        <div class="price-feature">Автопакет для банка</div>
         <div class="price-feature dim">История сделок</div>
       </div>
       <button class="price-btn outline" onclick="showNotif('Выбран тариф Разовая проверка')">Попробовать</button>
@@ -693,10 +855,9 @@
       <div class="price-period">в месяц · первые 30 дней бесплатно</div>
       <div class="price-features">
         <div class="price-feature">Всё из разовой</div>
-        <div class="price-feature">Неограниченные проверки</div>
         <div class="price-feature">Реестр документов (ЭДО)</div>
         <div class="price-feature">Автопакет для банка</div>
-        <div class="price-feature dim">Интеграция с банком (white-label)</div>
+        <div class="price-feature ">До 30 проверок в месяц</div>
       </div>
       <button class="price-btn primary" onclick="showNotif('Начат триал тарифа Базовый. Спасибо!')">Начать бесплатно</button>
     </div>
@@ -752,6 +913,7 @@
 <div class="notification" id="notif"></div>
 
 <script>
+
 let activeSource = 'edo';
 const factors = {
   documents: 0,
@@ -787,6 +949,76 @@ function analyzeDocuments(doctype, source) {
   }
 
   return { score, checks };
+}
+
+function generateDealFlow() {
+  const stream = document.getElementById('dealStream');
+  stream.innerHTML = '';
+
+  const amount = parseInt(document.getElementById('f_amount').value || 150000);
+
+  const events = [
+    {
+      title: 'Договор заключён',
+      sub: '15.01.2025',
+      status: 'green'
+    },
+    {
+      title: 'Счёт выставлен',
+      sub: '№2025-089 · 03.03.2025',
+      status: 'green'
+    },
+    {
+      title: 'Подписание',
+      sub: 'УКЭП подтверждена · Контур.Крипто',
+      status: 'green',
+      badge: 'УКЭП'
+    },
+    {
+      title: 'Частичная оплата',
+      sub: `${Math.round(amount * 0.3).toLocaleString()} ₽ (30%)`,
+      status: 'green'
+    }
+  ];
+
+  let i = 0;
+
+  function addEvent() {
+    if (i >= events.length) return;
+
+    const e = events[i];
+
+    const row = document.createElement('div');
+    row.className = 'check-row';
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'flex-start';
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(6px)';
+
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="check-dot ${e.status}"></div>
+        <span style="font-weight:500;">${e.title}</span>
+        ${e.badge ? `<span style="font-size:10px;background:rgba(47,232,160,0.15);padding:2px 6px;border-radius:4px;color:var(--accent);">${e.badge}</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-left:18px;margin-top:2px;">
+        ${e.sub}
+      </div>
+    `;
+
+    stream.appendChild(row);
+
+    setTimeout(() => {
+      row.style.transition = 'all .3s ease';
+      row.style.opacity = '1';
+      row.style.transform = 'translateY(0)';
+    }, 50);
+
+    i++;
+    setTimeout(addEvent, 400);
+  }
+
+  addEvent();
 }
 
 function analyzeCounterparty() {
@@ -848,6 +1080,21 @@ function analyzeHistory() {
     const btn = document.querySelector('.gosuslugi-btn');
     btn.textContent = 'Подключаем...';
     btn.disabled = true;
+    document.getElementById('profileBuild').style.display = 'block';
+
+const steps = ['ps1','ps2','ps3','ps4'];
+let i = 0;
+
+const interval = setInterval(() => {
+  if (i > 0) document.getElementById(steps[i-1]).style.color = 'var(--accent)';
+  
+  if (i < steps.length) {
+    document.getElementById(steps[i]).style.opacity = '1';
+    i++;
+  } else {
+    clearInterval(interval);
+  }
+}, 500);
     setTimeout(() => {
       document.getElementById('gosBefore').style.display = 'none';
       const after = document.getElementById('gosAfter');
@@ -1042,6 +1289,22 @@ function showResult() {
   document.getElementById('step3card').classList.add('active');
   document.getElementById('step3card').querySelector('.ds-value').style.color = 'var(--accent)';
   document.getElementById('step3card').querySelector('.ds-value').textContent = '✓ Скор рассчитан';
+  document.querySelector('#resultPanel').classList.add('show');
+  document.getElementById('resultPanel').classList.add('show'); 
+  document.getElementById('dealHistory').style.display = 'block';
+  generateDealFlow();
+  const total = parseInt(document.getElementById('f_amount').value || 150000);
+const paid = Math.round(total * 0.3);
+const percent = Math.round((paid / total) * 100);
+const rest = total - paid;
+
+document.getElementById('dealTotal').textContent = total.toLocaleString() + ' ₽';
+document.getElementById('dealPaid').textContent = paid.toLocaleString() + ' ₽';
+document.getElementById('dealPercent').textContent = percent + '%';
+document.getElementById('dealRest').textContent = rest.toLocaleString() + ' ₽';
+document.getElementById('dealBar').style.width = percent + '%';
+
+document.getElementById('dealCard').style.display = 'block';
 }
 
   function resetForm() {
@@ -1065,6 +1328,90 @@ function showResult() {
     clearTimeout(notifTimer);
     notifTimer = setTimeout(() => el.classList.remove('show'), 3000);
   }
+
+
+  function generateBankReport() {
+    const data = getScoreData();
+  showNotif('Формируем обоснование...');
+
+  setTimeout(() => {
+    const report = document.createElement('div');
+    report.style.marginTop = '16px';
+    report.style.padding = '14px';
+    report.style.background = 'var(--bg2)';
+    report.style.border = '1px solid var(--accent)';
+    report.style.borderRadius = '10px';
+    report.style.fontSize = '13px';
+
+    report.innerHTML = `
+      <div style="font-weight:600;margin-bottom:6px;">
+        📦 Обоснование для банка сформировано
+      </div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:10px;">
+        Готово к отправке в банк (115-ФЗ)
+      </div>
+
+      <div>✔ Договор подтверждён</div>
+      <div>✔ Экономический смысл операции обоснован</div>
+      <div>✔ Контрагент проверен</div>
+      <div style="margin-top:8px;font-weight:600;color:${getRiskColor(data.color)}">
+  ⚠ Риск: ${data.verdict}
+</div>
+
+      <div style="margin-top:10px;">
+        <button onclick="showNotif('Отправлено в банк')" 
+        style="background:var(--accent);border:none;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;">
+          🚀 Отправить в банк
+        </button>
+      </div>
+    `;
+
+    document.getElementById('resultPanel').appendChild(report);
+
+  }, 1200);
+  }
+  function connectBank(btn, bankName) {
+
+  // если уже подключен — не трогаем
+  if (btn.classList.contains('connected')) return;
+
+  btn.textContent = 'Подключаем...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    btn.textContent = '✓ ' + bankName;
+    btn.classList.add('connected');
+
+    showNotif(bankName + ' подключён');
+
+    // 💥 автозаполнение как будто из банка
+    document.getElementById('f_amount').value = 2450000;
+    document.getElementById('f_purpose').value = 'Оплата по договору №СИ-2025/123 от 15.01.2025';
+
+    // подсветка
+    document.getElementById('f_amount').style.borderColor = 'var(--accent)';
+    document.getElementById('f_purpose').style.borderColor = 'var(--accent)';
+
+  }, 1200);
+}
+function getRiskColor(color) {
+  if (color === 'green') return 'var(--accent)';
+  if (color === 'amber') return 'var(--amber)';
+  return 'var(--red)';
+}
+function downloadReport() {
+  const choice = confirm('Куда отправить отчёт?\n\nОК — скачать\nОтмена — отправить на email');
+
+  if (choice) {
+    showNotif('Отчёт скачан');
+  } else {
+    const email = prompt('Введите email для отправки отчёта');
+
+    if (email) {
+      showNotif('Отчёт отправлен на ' + email);
+    }
+  }
+}
 </script>
 </body>
 </html>
