@@ -818,51 +818,133 @@
     chips.appendChild(chip);
     uploadIdx++;
   }
-
   function getScoreData() {
-    const doctype = document.getElementById('f_doctype').value;
-    const amount = parseFloat(document.getElementById('f_amount').value) || 0;
-    const inn = document.getElementById('f_cinn').value;
+  const doctype = document.getElementById('f_doctype').value;
+  const amount = parseFloat(document.getElementById('f_amount').value) || 0;
+  const purpose = (document.getElementById('f_purpose').value || '').toLowerCase();
 
-    let score = 87;
-    let checks = [
-      { label: 'ФНС: статус активный', status: 'green' },
-      { label: 'Контрагент не в стоп-листах ЦБ', status: 'green' },
-      { label: 'СПАРК: нет негативных факторов', status: 'green' },
-      { label: 'ОКВЭД соответствует назначению', status: 'green' },
-    ];
+  let score = 80;
+  let checks = [];
 
-    if (doctype === 'full') {
-      score = 87;
-      checks.push({ label: 'Договор + Счёт + Акт — все есть', status: 'green' });
-      checks.push({ label: 'УКЭП обеих сторон верифицирован', status: 'green' });
-    } else if (doctype === 'partial') {
-      score = 68;
-      checks.push({ label: 'Договор и счёт есть', status: 'green' });
-      checks.push({ label: 'Акт отсутствует — запросить', status: 'amber' });
-    } else if (doctype === 'invoice') {
-      score = 45;
-      checks.push({ label: 'Только счёт — риск выше нормы', status: 'amber' });
-      checks.push({ label: 'Договор и акт не представлены', status: 'amber' });
-    } else {
-      score = 21;
-      checks = [
-        { label: 'ФНС: статус проверяется', status: 'amber' },
-        { label: 'Документы отсутствуют', status: 'red' },
-        { label: 'Высокий риск блокировки', status: 'red' },
-        { label: 'Банк может запросить пояснения', status: 'red' },
-      ];
+  /* =========================
+     📄 АНАЛИЗ ДОКУМЕНТОВ
+  ========================= */
+
+  if (doctype === 'full') {
+    checks.push({ label: 'Полный пакет документов', status: 'green' });
+    score += 5;
+
+    // иногда даже с полным пакетом есть риск
+    if (Math.random() < 0.1) {
+      checks.push({ label: 'Несостыковки в акте', status: 'amber' });
+      score -= 10;
     }
 
-    if (amount > 1000000) { score = Math.max(score - 10, 15); }
+  } else if (doctype === 'partial') {
+    checks.push({ label: 'Нет акта — риск выше', status: 'amber' });
+    score -= 15;
 
-    let verdict, color, subtext;
-    if (score >= 70) { verdict = 'НИЗКИЙ РИСК'; color = 'green'; subtext = 'Платёж пройдёт. Блокировка маловероятна.'; }
-    else if (score >= 45) { verdict = 'СРЕДНИЙ РИСК'; color = 'amber'; subtext = 'Рекомендуем дополнить документы перед отправкой.'; }
-    else { verdict = 'ВЫСОКИЙ РИСК'; color = 'red'; subtext = 'Высокая вероятность блокировки. Подготовьте пакет документов.'; }
+  } else if (doctype === 'invoice') {
+    checks.push({ label: 'Только счёт — нет основания сделки', status: 'red' });
+    score -= 30;
 
-    return { score, verdict, color, subtext, checks };
+  } else {
+    checks.push({ label: 'Документы отсутствуют', status: 'red' });
+    score -= 45;
   }
+
+  /* =========================
+     💰 АНАЛИЗ СУММЫ
+  ========================= */
+
+  if (amount > 1000000) {
+    checks.push({ label: 'Крупная сумма платежа', status: 'amber' });
+    score -= 10;
+  }
+
+  if (amount > 3000000) {
+    checks.push({ label: 'Нетипично крупный платёж', status: 'red' });
+    score -= 15;
+  }
+
+  /* =========================
+     🧾 АНАЛИЗ НАЗНАЧЕНИЯ
+  ========================= */
+
+  if (!purpose || purpose.length < 10) {
+    checks.push({ label: 'Назначение платежа слишком общее', status: 'amber' });
+    score -= 10;
+  }
+
+  if (purpose.includes('займ') || purpose.includes('возврат') || purpose.includes('перевод')) {
+    checks.push({ label: 'Подозрительное назначение платежа', status: 'red' });
+    score -= 15;
+  }
+
+  if (purpose.includes('по договору')) {
+    checks.push({ label: 'Назначение соответствует договору', status: 'green' });
+    score += 5;
+  }
+
+  /* =========================
+     🏢 СИМУЛЯЦИЯ КОНТРАГЕНТА
+  ========================= */
+
+  const counterpartyRisk = Math.random();
+
+  if (counterpartyRisk < 0.15) {
+    checks.push({ label: 'Контрагент в зоне риска (СПАРК)', status: 'red' });
+    score -= 25;
+  } else if (counterpartyRisk < 0.35) {
+    checks.push({ label: 'Низкий рейтинг контрагента', status: 'amber' });
+    score -= 10;
+  } else {
+    checks.push({ label: 'Контрагент благонадёжен', status: 'green' });
+  }
+
+  /* =========================
+     ⚠️ АНОМАЛИИ (как в банке)
+  ========================= */
+
+  if (Math.random() < 0.1) {
+    checks.push({ label: 'Нетипичная активность по счёту', status: 'amber' });
+    score -= 15;
+  }
+
+  if (Math.random() < 0.07) {
+    checks.push({ label: 'Сработал антифрод-триггер', status: 'red' });
+    score -= 25;
+  }
+
+  /* =========================
+     📊 НОРМАЛИЗАЦИЯ
+  ========================= */
+
+  score = Math.max(5, Math.min(95, score));
+
+  /* =========================
+     🎨 ВЕРДИКТ
+  ========================= */
+
+  let verdict, color, subtext;
+
+  if (score >= 70) {
+    verdict = 'НИЗКИЙ РИСК';
+    color = 'green';
+    subtext = 'Платёж выглядит безопасным.';
+  } else if (score >= 45) {
+    verdict = 'СРЕДНИЙ РИСК';
+    color = 'amber';
+    subtext = 'Рекомендуем проверить документы.';
+  } else {
+    verdict = 'ВЫСОКИЙ РИСК';
+    color = 'red';
+    subtext = 'Высокая вероятность блокировки.';
+  }
+
+  return { score, verdict, color, subtext, checks };
+}
+
 
   function runCheck() {
     document.getElementById('checkBtn').disabled = true;
