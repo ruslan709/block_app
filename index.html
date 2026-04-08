@@ -407,7 +407,7 @@
 <section class="hero">
   <div class="badge">Финансовая гигиена по 115-ФЗ</div>
   <h1>Блокировка счёта —<br>до того, как <em>она случилась</em></h1>
-  <p class="hero-sub">Сервис предпроверки банковских платежей. Проверяем по ФНС, СПАРК и ЦБ ещё до отправки в банк — и даём готовый скор риска.</p>
+  <p class="hero-sub">Перед отправкой платежа вы сразу видите уровень риска и рейтинг контрагента.Документы сопоставляются автоматически — вы понимаете, безопасна ли операция, ещё до банка.</p>
   <div class="hero-ctas">
     <button class="btn-primary" onclick="scrollToDemo()">Проверить платёж бесплатно</button>
     <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">Как это работает</button>
@@ -752,6 +752,94 @@
 <div class="notification" id="notif"></div>
 
 <script>
+let activeSource = 'edo';
+const factors = {
+  documents: 0,
+  counterparty: 0,
+  behavior: 0,
+  transaction: 0,
+  history: 0
+};
+function analyzeDocuments(doctype, source) {
+  let score = 0;
+  let checks = [];
+
+  if (doctype === 'full') {
+    score += 25;
+    checks.push({ label: 'Полный комплект документов', status: 'green' });
+  } else if (doctype === 'partial') {
+    score += 10;
+    checks.push({ label: 'Не хватает акта', status: 'amber' });
+  } else {
+    score -= 20;
+    checks.push({ label: 'Документы отсутствуют', status: 'red' });
+  }
+
+  if (source === 'edo') {
+    score += 15;
+    checks.push({ label: 'Документы подтверждены через ЭДО', status: 'green' });
+  } else if (source === 'upload') {
+    score += 5;
+    checks.push({ label: 'Документы загружены вручную', status: 'amber' });
+  } else {
+    score -= 10;
+    checks.push({ label: 'Нет подтверждения источника', status: 'red' });
+  }
+
+  return { score, checks };
+}
+
+function analyzeCounterparty() {
+  let score = Math.floor(Math.random() * 40) + 40; // 40–80
+
+  let checks = [
+    { label: 'Рейтинг контрагента рассчитан', status: 'green' },
+    { label: 'История операций проверена', status: 'green' }
+  ];
+
+  if (score < 50) {
+    checks.push({ label: 'Обнаружены рисковые признаки', status: 'red' });
+  }
+
+  return { score, checks };
+}
+
+function analyzeTransaction(amount, purpose) {
+  let score = 20;
+  let checks = [];
+
+  if (amount > 1000000) {
+    score -= 10;
+    checks.push({ label: 'Крупная сумма операции', status: 'amber' });
+  }
+
+  if (!purpose || purpose.length < 10) {
+    score -= 10;
+    checks.push({ label: 'Назначение платежа не раскрыто', status: 'red' });
+  } else {
+    score += 10;
+    checks.push({ label: 'Назначение платежа корректное', status: 'green' });
+  }
+
+  return { score, checks };
+}
+
+function analyzeHistory() {
+  let hasBlocks = Math.random() > 0.8;
+
+  if (hasBlocks) {
+    return {
+      score: -20,
+      checks: [{ label: 'Были блокировки ранее', status: 'red' }]
+    };
+  }
+
+  return {
+    score: 15,
+    checks: [{ label: 'История чистая — блокировок нет', status: 'green' }]
+  };
+}
+
   function scrollToDemo() {
     document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
   }
@@ -821,179 +909,140 @@
   function getScoreData() {
   const doctype = document.getElementById('f_doctype').value;
   const amount = parseFloat(document.getElementById('f_amount').value) || 0;
-  const purpose = (document.getElementById('f_purpose').value || '').toLowerCase();
+  const purpose = document.getElementById('f_purpose').value;
+  
+  const source = typeof activeSource !== 'undefined' ? activeSource : 'edo';
 
-  let score = 80;
-  let checks = [];
+  const doc = analyzeDocuments(doctype, source);
+  const counterparty = analyzeCounterparty();
+  const transaction = analyzeTransaction(amount, purpose);
+  const history = analyzeHistory();
 
-  /* =========================
-     📄 АНАЛИЗ ДОКУМЕНТОВ
-  ========================= */
+  // критические условия
+const isNoDocs = doctype === 'none';
+const isBadPurpose = !purpose || purpose.length < 10;
 
-  if (doctype === 'full') {
-    checks.push({ label: 'Полный пакет документов', status: 'green' });
-    score += 5;
+if (isNoDocs || isBadPurpose) {
+  return {
+    score: 35,
+    verdict: 'ВЫСОКИЙ РИСК',
+    color: 'red',
+    subtext: 'Критические ошибки в платеже (документы / назначение)',
+    checks: [
+      ...doc.checks,
+      ...counterparty.checks,
+      ...transaction.checks,
+      ...history.checks
+    ]
+  };
+}
 
-    // иногда даже с полным пакетом есть риск
-    if (Math.random() < 0.1) {
-      checks.push({ label: 'Несостыковки в акте', status: 'amber' });
-      score -= 10;
-    }
+  let totalScore =
+    doc.score +
+    counterparty.score +
+    transaction.score +
+    history.score;
 
-  } else if (doctype === 'partial') {
-    checks.push({ label: 'Нет акта — риск выше', status: 'amber' });
-    score -= 15;
+  // нормализация
+  totalScore = Math.max(10, Math.min(100, totalScore));
 
-  } else if (doctype === 'invoice') {
-    checks.push({ label: 'Только счёт — нет основания сделки', status: 'red' });
-    score -= 30;
-
-  } else {
-    checks.push({ label: 'Документы отсутствуют', status: 'red' });
-    score -= 45;
-  }
-
-  /* =========================
-     💰 АНАЛИЗ СУММЫ
-  ========================= */
-
-  if (amount > 1000000) {
-    checks.push({ label: 'Крупная сумма платежа', status: 'amber' });
-    score -= 10;
-  }
-
-  if (amount > 3000000) {
-    checks.push({ label: 'Нетипично крупный платёж', status: 'red' });
-    score -= 15;
-  }
-
-  /* =========================
-     🧾 АНАЛИЗ НАЗНАЧЕНИЯ
-  ========================= */
-
-  if (!purpose || purpose.length < 10) {
-    checks.push({ label: 'Назначение платежа слишком общее', status: 'amber' });
-    score -= 10;
-  }
-
-  if (purpose.includes('займ') || purpose.includes('возврат') || purpose.includes('перевод')) {
-    checks.push({ label: 'Подозрительное назначение платежа', status: 'red' });
-    score -= 15;
-  }
-
-  if (purpose.includes('по договору')) {
-    checks.push({ label: 'Назначение соответствует договору', status: 'green' });
-    score += 5;
-  }
-
-  /* =========================
-     🏢 СИМУЛЯЦИЯ КОНТРАГЕНТА
-  ========================= */
-
-  const counterpartyRisk = Math.random();
-
-  if (counterpartyRisk < 0.15) {
-    checks.push({ label: 'Контрагент в зоне риска (СПАРК)', status: 'red' });
-    score -= 25;
-  } else if (counterpartyRisk < 0.35) {
-    checks.push({ label: 'Низкий рейтинг контрагента', status: 'amber' });
-    score -= 10;
-  } else {
-    checks.push({ label: 'Контрагент благонадёжен', status: 'green' });
-  }
-
-  /* =========================
-     ⚠️ АНОМАЛИИ (как в банке)
-  ========================= */
-
-  if (Math.random() < 0.1) {
-    checks.push({ label: 'Нетипичная активность по счёту', status: 'amber' });
-    score -= 15;
-  }
-
-  if (Math.random() < 0.07) {
-    checks.push({ label: 'Сработал антифрод-триггер', status: 'red' });
-    score -= 25;
-  }
-
-  /* =========================
-     📊 НОРМАЛИЗАЦИЯ
-  ========================= */
-
-  score = Math.max(5, Math.min(95, score));
-
-  /* =========================
-     🎨 ВЕРДИКТ
-  ========================= */
+  const checks = [
+    ...doc.checks,
+    ...counterparty.checks,
+    ...transaction.checks,
+    ...history.checks
+  ];
 
   let verdict, color, subtext;
 
-  if (score >= 70) {
+  if (totalScore >= 70) {
     verdict = 'НИЗКИЙ РИСК';
     color = 'green';
-    subtext = 'Платёж выглядит безопасным.';
-  } else if (score >= 45) {
+    subtext = 'Платёж безопасен. Можно отправлять.';
+  } else if (totalScore >= 45) {
     verdict = 'СРЕДНИЙ РИСК';
     color = 'amber';
-    subtext = 'Рекомендуем проверить документы.';
+    subtext = 'Есть риски. Рекомендуем проверить документы.';
   } else {
     verdict = 'ВЫСОКИЙ РИСК';
     color = 'red';
     subtext = 'Высокая вероятность блокировки.';
   }
 
-  return { score, verdict, color, subtext, checks };
+  return {
+    score: totalScore,
+    verdict,
+    color,
+    subtext,
+    checks
+  };
 }
 
 
-  function runCheck() {
-    document.getElementById('checkBtn').disabled = true;
-    document.getElementById('resultPanel').classList.remove('show');
-    document.getElementById('loadingPanel').classList.add('show');
+function runCheck() {
+  const btn = document.getElementById('checkBtn');
 
-    const steps = ['ls1','ls2','ls3','ls4','ls5'];
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i > 0) document.getElementById(steps[i-1]).classList.remove('visible');
-      if (i < steps.length) {
-        document.getElementById(steps[i]).classList.add('visible');
-        i++;
-      } else {
-        clearInterval(interval);
-        setTimeout(showResult, 400);
-      }
-    }, 600);
-  }
+  // каждый раз сбрасываем
+  document.getElementById('resultPanel').classList.remove('show');
+  document.getElementById('loadingPanel').classList.add('show');
 
-  function showResult() {
-    document.getElementById('loadingPanel').classList.remove('show');
-    const data = getScoreData();
+  btn.disabled = true;
+  btn.textContent = 'Проверяем...';
 
-    document.getElementById('rScore').textContent = data.score;
-    document.getElementById('rScore').className = 'result-score-big ' + data.color;
-    document.getElementById('rVerdict').textContent = data.verdict;
-    document.getElementById('rVerdict').className = 'result-verdict ' + data.color;
-    document.getElementById('rSubtext').textContent = data.subtext;
+  const steps = ['ls1','ls2','ls3','ls4','ls5'];
+  let i = 0;
 
-    const grid = document.getElementById('checksGrid');
-    grid.innerHTML = '';
-    data.checks.forEach(c => {
-      const row = document.createElement('div');
-      row.className = 'check-row';
-      row.innerHTML = `<div class="check-dot ${c.status}"></div><span>${c.label}</span>`;
-      grid.appendChild(row);
-    });
+  const interval = setInterval(() => {
+    if (i > 0) document.getElementById(steps[i-1]).classList.remove('visible');
 
-    document.getElementById('resultPanel').classList.add('show');
+    if (i < steps.length) {
+      document.getElementById(steps[i]).classList.add('visible');
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(showResult, 400);
+    }
+  }, 500);
+}
 
-    document.getElementById('step3card').classList.add('active');
-    document.getElementById('step2card').classList.remove('active');
-    document.getElementById('step2card').classList.add('done');
-    document.getElementById('step2card').querySelector('.ds-value').style.color = 'var(--accent)';
-    document.getElementById('step2card').querySelector('.ds-value').textContent = '✓ Данные';
+function showResult() {
+  document.getElementById('loadingPanel').classList.remove('show');
 
-    document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+  const data = getScoreData();
+
+  document.getElementById('rScore').textContent = data.score;
+  document.getElementById('rScore').className = 'result-score-big ' + data.color;
+
+  document.getElementById('rVerdict').textContent = data.verdict;
+  document.getElementById('rVerdict').className = 'result-verdict ' + data.color;
+
+  document.getElementById('rSubtext').textContent = data.subtext;
+
+  const grid = document.getElementById('checksGrid');
+  grid.innerHTML = '';
+
+  data.checks.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'check-row';
+    row.innerHTML = `<div class="check-dot ${c.status}"></div><span>${c.label}</span>`;
+    grid.appendChild(row);
+  });
+
+  document.getElementById('resultPanel').classList.add('show');
+
+  // ✅ РАЗБЛОКИРОВКА КНОПКИ
+  const btn = document.getElementById('checkBtn');
+  btn.disabled = false;
+  btn.textContent = '🔍 Запустить проверку ещё раз';
+
+  document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  document.getElementById('step2card').classList.remove('active');
+  document.getElementById('step2card').classList.add('done');
+  document.getElementById('step3card').classList.add('active');
+  document.getElementById('step3card').querySelector('.ds-value').style.color = 'var(--accent)';
+  document.getElementById('step3card').querySelector('.ds-value').textContent = '✓ Скор рассчитан';
+}
 
   function resetForm() {
     document.getElementById('resultPanel').classList.remove('show');
