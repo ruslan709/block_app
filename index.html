@@ -226,21 +226,161 @@
   }
   @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
   .notification.show { display: block; }
+  /* =========================
+   MOBILE FIX (основной)
+========================= */
+@media (max-width: 768px) {
 
-  @media (max-width: 900px) {
-    nav { padding: 0 20px; }
-    .nav-links { display: none; }
-    section { padding: 60px 20px; }
-    .hero { padding-top: 100px; }
-    .stats-row { grid-template-columns: 1fr; }
-    .how-grid { grid-template-columns: 1fr; }
-    .demo-flow { grid-template-columns: 1fr; }
-    .demo-arrow { display: none; }
-    .demo-form { grid-template-columns: 1fr; }
-    .checks-grid { grid-template-columns: 1fr; }
-    .pricing-grid { grid-template-columns: 1fr; }
-    footer { flex-direction: column; gap: 12px; text-align: center; }
+  nav {
+    padding: 0 16px;
+    height: 56px;
   }
+
+  .nav-links {
+    display: none;
+  }
+
+  section {
+    padding: 48px 16px;
+  }
+
+  .hero {
+    padding-top: 90px;
+    padding-bottom: 40px;
+  }
+
+  h1 {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .stat {
+    padding: 20px;
+  }
+
+  .stat-num {
+    font-size: 28px;
+  }
+
+  .how-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .score-card {
+    padding: 20px;
+  }
+
+  .score-big {
+    font-size: 48px;
+  }
+
+  .demo-section {
+    padding: 24px 16px;
+    border-radius: 12px;
+  }
+
+  .demo-flow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .demo-arrow {
+    display: none;
+  }
+
+  .demo-form {
+    grid-template-columns: 1fr;
+  }
+
+  .checks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 32px 16px;
+  }
+
+  .result-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .result-score-big {
+    font-size: 40px;
+  }
+
+  .notification {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+
+
+/* =========================
+   SMALL PHONES
+========================= */
+@media (max-width: 480px) {
+
+  h1 {
+    font-size: 26px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .field-input,
+  .field-select {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .score-big {
+    font-size: 40px;
+  }
+
+  .result-score-big {
+    font-size: 34px;
+  }
+}
 </style>
 </head>
 <body>
